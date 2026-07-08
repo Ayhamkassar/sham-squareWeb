@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Sham Presto Admin",
+    "slug": "sham-presto-rn",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.shampresto.admin"
+    },
+    "android": {
+      "package": "com.shampresto.admin"
+    },
+    "extra": {
+      "supportsRTL": true,
+      "apiUrl": "https://ashityshop.onrender.com/api/v1",
+      "socketUrl": "https://ashityshop.onrender.com/"
+    }
+  }
+}
