@@ -3,45 +3,42 @@ import { getJson, postJson, putJson, deleteJson } from './apiClient';
 export interface BackendProduct {
   id: string;
   name: string;
-  slug?: string;
-  description?: string;
-  short_description?: string;
+  slug: string;
+  description: string;
+  shortDescription?: string;
   brand?: string;
-  price?: number;
-  images?: string[];
+  tags: string[];
+  images: string[];
   thumbnail?: string;
-  category_id?: string;
-  sub_category_id?: string;
-  vendor_id?: string;
-  status?: string;
-  is_featured?: boolean;
-  tags?: string[];
-  total_sold?: number;
-  price_range?: { min?: number; max?: number };
-  attributes?: Record<string, any>;
-  rating?: { average?: number; count?: number };
+  priceRange: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+  categoryId: string;
+  subCategoryId: string;
+  status: string;
+  isFeatured: boolean;
+  rating: any;
+  totalSold: number;
 }
 
 export const productService = {
-  async list(params?: Record<string, string>): Promise<BackendProduct[]> {
-    const searchParams = params ? '?' + new URLSearchParams(params).toString() : '';
-    const payload = await getJson<{ success: boolean; data: BackendProduct[] }>(`/products${searchParams}`);
-    return payload?.data ?? [];
+  async list(params?: Record<string, any>): Promise<{ data: BackendProduct[] }> {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return await getJson<{ data: BackendProduct[] }>(`/products${query}`);
   },
 
-  async getById(id: string): Promise<BackendProduct | null> {
-    const payload = await getJson<{ success: boolean; data: BackendProduct }>(`/products/${id}`);
-    return payload?.data ?? null;
+  async getById(id: string): Promise<{ data: BackendProduct }> {
+    return await getJson<{ data: BackendProduct }>(`/products/${id}`);
   },
 
-  async create(data: Partial<BackendProduct>): Promise<BackendProduct> {
-    const payload = await postJson<{ success: boolean; data: BackendProduct }>('/products', data);
-    return payload.data;
+  async create(data: Partial<BackendProduct>): Promise<{ data: BackendProduct }> {
+    return await postJson<{ data: BackendProduct }>('/products', data);
   },
 
-  async update(id: string, data: Partial<BackendProduct>): Promise<BackendProduct> {
-    const payload = await putJson<{ success: boolean; data: BackendProduct }>(`/products/${id}`, data);
-    return payload.data;
+  async update(id: string, data: Partial<BackendProduct>): Promise<{ data: BackendProduct }> {
+    return await putJson<{ data: BackendProduct }>(`/products/${id}`, data);
   },
 
   async remove(id: string): Promise<void> {
