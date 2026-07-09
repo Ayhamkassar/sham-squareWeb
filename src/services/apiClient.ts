@@ -1,8 +1,8 @@
 // Central API client configuration
 // Direct API calls without mock data
-
+import { API_BASE_URL } from '../config/env';
 import { authService } from './authService';
-import { UploadResult } from './types/backend-api.types';
+import { UploadResult } from '../types/backend-api.types';
 
 export class ApiError extends Error {
   status: number;
@@ -37,7 +37,7 @@ async function request<T = any>(path: string, init: RequestInit = {}, retry = tr
 
   let res: Response;
   try {
-    res = await fetch(`${window.location.origin}${path}`, { ...init, headers });
+    res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
   } catch (error: any) {
     if (retry) {
       await new Promise((r) => setTimeout(r, 400));
@@ -48,7 +48,7 @@ async function request<T = any>(path: string, init: RequestInit = {}, retry = tr
 
   if (res.status === 401 && retry && tokens.refresh) {
     try {
-      const refreshRes = await fetch(`${window.location.origin}/api/v1/auth/refresh`, {
+      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: tokens.refresh }),
@@ -97,7 +97,7 @@ export async function postFormData<T = any>(path: string, formData: FormData): P
 
   let res: Response;
   try {
-    res = await fetch(`${window.location.origin}${path}`, {
+    res = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
       headers,
       body: formData,
@@ -108,7 +108,7 @@ export async function postFormData<T = any>(path: string, formData: FormData): P
 
   if (res.status === 401 && tokens.refresh) {
     try {
-      const refreshRes = await fetch(`${window.location.origin}/api/v1/auth/refresh`, {
+      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: tokens.refresh }),

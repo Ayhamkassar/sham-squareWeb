@@ -1,7 +1,7 @@
 // Web application upload service
 // File upload for web browsers only
 import { postFormData, postJson } from './apiClient';
-import { UploadResult } from './types/backend-api.types';
+import { UploadResult } from '../types/backend-api.types';
 
 export async function uploadByUrl(fileUrl: string, folder: string = 'users', resourceId?: string) {
   return postJson('/api/v1/upload/by-url', { fileUrl, folder, resourceId });

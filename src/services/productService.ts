@@ -8,6 +8,10 @@ export interface BackendProduct {
   shortDescription?: string;
   brand?: string;
   tags: string[];
+  attributes?: {
+  price?: number;
+};
+vendor_id?: string;
   images: string[];
   thumbnail?: string;
   priceRange: {

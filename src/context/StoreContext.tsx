@@ -72,13 +72,13 @@ function mapBackendProduct(bp: BackendProduct): Product {
     id: bp.id,
     name: bp.name || '',
     description: bp.description || '',
-    price: bp.price_range?.min ?? bp.attributes?.price ?? 0,
+    price: bp.priceRange?.min ?? bp.attributes?.price ?? 0,
     stock: 0,
-    category: bp.category_id || '',
+    category: bp.categoryId || '',
     departmentId: bp.vendor_id || '',
     image: (bp.images && bp.images[0]) || bp.thumbnail || '',
     isAvailable: bp.status === 'PUBLISHED',
-    isFeatured: bp.is_featured || false,
+    isFeatured: bp.isFeatured || false,
     sku: bp.slug || bp.id,
   };
 }
@@ -170,7 +170,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         newState.categories = categories.value.map(mapBackendCategory);
       }
       if (products.status === 'fulfilled') {
-        newState.products = products.value.map(mapBackendProduct);
+        newState.products = products.value.data.map(mapBackendProduct);
       }
       if (orders.status === 'fulfilled') {
         newState.orders = orders.value.map(mapBackendOrder);
