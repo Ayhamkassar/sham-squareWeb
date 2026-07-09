@@ -69,7 +69,7 @@ export const authService = {
   },
 
   async register(data: { email: string; password: string; firstName: string; lastName: string; phone?: string }) {
-    return postJson('/auth/register', data);
+    return postJson('/web-auth/register', data);
   },
 
   async getMe(): Promise<MeResponse['data']['user'] | null> {

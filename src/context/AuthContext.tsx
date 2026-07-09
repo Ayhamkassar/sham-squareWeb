@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }) => {
   setAuthLoading(true);
   try {
-    const res = await postJson('/auth/register', data);
+    const res = await postJson('/web-auth/register', data);
     const { accessToken, refreshToken } = res.data.tokens;
     await authService.saveTokens(accessToken, refreshToken);
     setAdminUser(res.data.user);
