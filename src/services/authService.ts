@@ -58,7 +58,7 @@ export const authService = {
 
   async login(identifier: string, password: string): Promise<LoginResponse['data']> {
     const isEmail = identifier.includes('@');
-    const payload = await postJson<LoginResponse>('/auth/login', {
+    const payload = await postJson<LoginResponse>('/web-auth/login', {
       [isEmail ? 'email' : 'phone']: identifier,
       password,
     });
