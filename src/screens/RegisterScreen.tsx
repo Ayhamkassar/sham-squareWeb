@@ -20,7 +20,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
   const { width } = useWindowDimensions();
   const isCompact = width < 420;
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +29,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (!name.trim()) { setError(t('يرجى إدخال الاسم الكامل')); return; }
+    if (!firstName.trim()) { setError(t('يرجى إدخال الاسم الأول')); return; }
+    if (!lastName.trim()) { setError(t('يرجى إدخال اسم العائلة')); return; }
     if (!phone.trim()) { setError(t('يرجى إدخال رقم الهاتف')); return; }
     if (!email.trim()) { setError(t('يرجى إدخال البريد الإلكتروني')); return; }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,7 +42,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
     setError('');
     try {
       await registerWithCredentials({
-        name: name.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: email.trim(),
         phone: phone.trim(),
         password,
@@ -88,7 +91,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
             </View>
           ) : null}
 
-          <Input label={t('الاسم الكامل')} value={name} onChangeText={(v) => { setName(v); setError(''); }} icon="person-outline" />
+          <Input label={t('الاسم الأول')} value={firstName} onChangeText={(v) => { setFirstName(v); setError(''); }} icon="person-outline" />
+          <Input label={t('اسم العائلة')} value={lastName} onChangeText={(v) => { setLastName(v); setError(''); }} icon="person-outline" />
           <Input label={t('البريد الإلكتروني')} value={email} onChangeText={(v) => { setEmail(v); setError(''); }} keyboardType="email-address" icon="mail-outline" />
           <Input label={t('رقم الهاتف')} value={phone} onChangeText={(v) => { setPhone(v); setError(''); }} keyboardType="phone-pad" icon="call-outline" />
           <Input label={t('كلمة المرور')} value={password} onChangeText={(v) => { setPassword(v); setError(''); }} secureTextEntry icon="lock-closed-outline" />

@@ -407,6 +407,12 @@ export const AR_TO_EN: Record<string, string> = {
   'سيتم حذف القسم': 'The department will be deleted',
   'حذف قسم': 'Delete Department',
   'بحث باسم أو بريد أو هاتف...': 'Search by name, email or phone...',
+  // Register Screen
+  'الاسم الأول': 'First Name',
+  'اسم العائلة': 'Last Name',
+  'يرجى إدخال الاسم الأول': 'Please enter your first name',
+  'يرجى إدخال اسم العائلة': 'Please enter your last name',
+
   // Common UI words
   'رجوع': 'Back',
   'بحث...': 'Search...',

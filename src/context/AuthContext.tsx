@@ -13,7 +13,7 @@ interface AuthContextValue {
   adminUser: AdminUser | null;
   login: (user: AdminUser) => void;
   loginWithCredentials: (phone: string, password: string) => Promise<void>;
-    registerWithCredentials: (data: {name: string;email: string;phone: string;password: string;}) => Promise<void>;
+    registerWithCredentials: (data: {firstName: string; lastName: string; email: string; phone: string; password: string;}) => Promise<void>;
   logout: () => void;
   updateAdminUser: (user: AdminUser) => void;
   isSuperAdmin: boolean;
@@ -93,7 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const registerWithCredentials = async (data: {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   password: string;
