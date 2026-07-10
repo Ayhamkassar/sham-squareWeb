@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,6 +56,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
   };
 
   return (
+    <ScrollView>
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -121,6 +122,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
         </View>
       </View>
     </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
