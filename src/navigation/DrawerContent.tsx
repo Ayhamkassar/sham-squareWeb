@@ -23,6 +23,7 @@ const NAV_SECTIONS: { title?: string; items: NavItem[] }[] = [
     items: [
       { route: 'Products', labelAr: 'المنتجات', icon: 'cube-outline' },
       { route: 'Categories', labelAr: 'الفئات', icon: 'pricetag-outline' },
+      { route: 'SubCategories', labelAr: 'التصنيفات الفرعية', icon: 'layers-outline' },
       { route: 'Inventory', labelAr: 'المخزون', icon: 'file-tray-stacked-outline' },
     ],
   },

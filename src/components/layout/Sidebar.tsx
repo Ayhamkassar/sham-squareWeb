@@ -30,44 +30,8 @@ interface NavItem {
   icon: keyof typeof Ionicons.glyphMap;
 }
 
-const NAV_SECTIONS: { title?: string; items: NavItem[] }[] = [
-  {
-    items: [{ route: 'Dashboard', labelAr: 'لوحة التحكم', icon: 'grid-outline' }],
-  },
-  {
-    title: 'المتجر',
-    items: [
-      { route: 'Products', labelAr: 'المنتجات', icon: 'cube-outline' },
-      { route: 'Categories', labelAr: 'الفئات', icon: 'pricetag-outline' },
-      { route: 'Inventory', labelAr: 'المخزون', icon: 'file-tray-stacked-outline' },
-    ],
-  },
-  {
-    title: 'المبيعات',
-    items: [
-      { route: 'Orders', labelAr: 'الطلبات', icon: 'cart-outline' },
-      { route: 'Payments', labelAr: 'المدفوعات', icon: 'card-outline' },
-      { route: 'Coupons', labelAr: 'الكوبونات', icon: 'ticket-outline' },
-    ],
-  },
-  {
-    title: 'العملاء',
-    items: [
-      { route: 'Customers', labelAr: 'العملاء', icon: 'people-outline' },
-      { route: 'Support', labelAr: 'الدعم الفني', icon: 'headset-outline' },
-      { route: 'Reviews', labelAr: 'التقييمات', icon: 'star-outline' },
-    ],
-  },
-  {
-    title: 'النظام',
-    items: [
-      { route: 'Notifications', labelAr: 'الإشعارات', icon: 'notifications-outline' },
-      { route: 'Roles', labelAr: 'الصلاحيات', icon: 'shield-checkmark-outline' },
-      { route: 'ActivityLog', labelAr: 'النشاطات', icon: 'time-outline' },
-      { route: 'Settings', labelAr: 'الإعدادات', icon: 'settings-outline' },
-    ],
-  },
-];
+// Legacy static nav — not used at runtime but kept for reference.
+const STATIC_NAV: { title?: string; items: NavItem[] }[] = [];
 
 interface SidebarProps {
   activeRoute: string;
@@ -95,6 +59,7 @@ export default function Sidebar({ activeRoute, onNavigate, collapsed, onToggle, 
         items: [
           { route: 'Products', labelAr: 'المنتجات', icon: 'cube-outline' },
           { route: 'Categories', labelAr: 'الفئات', icon: 'pricetag-outline' },
+          { route: 'SubCategories', labelAr: 'التصنيفات الفرعية', icon: 'layers-outline' },
           { route: 'Inventory', labelAr: 'المخزون', icon: 'file-tray-stacked-outline' },
         ],
       },

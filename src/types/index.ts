@@ -34,6 +34,8 @@ export interface Product {
   salePrice?: number;
   stock: number;
   category: string;
+  categoryId?: string;
+  subCategoryId?: string;
   departmentId: string;
   image: string;
   isAvailable: boolean;
@@ -47,6 +49,24 @@ export interface Category {
   icon: string;
   productCount: number;
   image?: string;
+  description?: string;
+  slug?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export interface SubCategory {
+  id: string;
+  categoryId: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  sortOrder: number;
+  isActive: boolean;
+  categoryName?: string;
+  productCount?: number;
+  createdAt?: string;
 }
 
 export interface OrderItem {

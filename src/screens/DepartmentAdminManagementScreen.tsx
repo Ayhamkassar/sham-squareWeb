@@ -49,6 +49,7 @@ export default function DepartmentAdminManagementScreen() {
   };
   const [form, setForm] = useState<AdminFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof AdminFormData, string>>>({});
+  const [saving, setSaving] = useState(false);
 
   const filteredAdmins = useMemo(() => {
     let list = state.departmentAdmins;
@@ -115,34 +116,41 @@ export default function DepartmentAdminManagementScreen() {
 
   function handleSubmit() {
     if (!validate()) return;
-    if (editingId) {
-      const existing = state.departmentAdmins.find((a) => a.id === editingId);
-      if (!existing) return;
-      editDepartmentAdmin({
-        ...existing,
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        departmentId: form.departmentId,
-        status: form.status,
-        role: form.role,
-        avatar: form.avatar,
-      });
-    } else {
-      addDepartmentAdmin({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        phone: form.phone.trim(),
-        departmentId: form.departmentId,
-        status: form.status,
-        role: form.role,
-        roleType: 'department',
-        avatar: form.avatar,
-        createdAt: new Date().toISOString().slice(0, 10),
-      });
+    setSaving(true);
+    try {
+      if (editingId) {
+        const existing = state.departmentAdmins.find((a) => a.id === editingId);
+        if (!existing) return;
+        editDepartmentAdmin({
+          ...existing,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          departmentId: form.departmentId,
+          status: form.status,
+          role: form.role,
+          avatar: form.avatar,
+        });
+      } else {
+        addDepartmentAdmin({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          phone: form.phone.trim(),
+          departmentId: form.departmentId,
+          status: form.status,
+          role: form.role,
+          roleType: 'department',
+          avatar: form.avatar,
+          createdAt: new Date().toISOString().slice(0, 10),
+        });
+      }
+      setModalVisible(false);
+    } catch {
+      // error handled by context
+    } finally {
+      setSaving(false);
     }
-    setModalVisible(false);
   }
 
   function handleDelete(admin: AdminUser) {
@@ -349,7 +357,10 @@ export default function DepartmentAdminManagementScreen() {
             </Pressable>
           </View>
         </View>
-        <Button label={editingId ? t('حفظ التعديلات') : t('إضافة المشرف')} onPress={handleSubmit} fullWidth />
+          <View style={styles.modalBtnRow}>
+            <Button label={t('إلغاء')} onPress={() => setModalVisible(false)} variant="outline" style={{ flex: 1 }} />
+            <Button label={editingId ? t('حفظ التعديلات') : t('إضافة المشرف')} onPress={handleSubmit} disabled={saving} loading={saving} style={{ flex: 1 }} />
+          </View>
       </Modal>
 
       {/* View Details Modal */}
@@ -436,4 +447,5 @@ const styles = StyleSheet.create({
   viewField: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 },
   viewLabel: { fontSize: 12 },
   viewValue: { fontSize: 13, fontWeight: '500', textAlign: 'right', flex: 1, paddingLeft: 12 },
+  modalBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
 });

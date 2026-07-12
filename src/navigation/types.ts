@@ -4,6 +4,7 @@ export type DrawerParamList = {
   Dashboard: undefined;
   Products: undefined;
   Categories: undefined;
+  SubCategories: undefined;
   Inventory: undefined;
   Orders: undefined;
   Customers: undefined;

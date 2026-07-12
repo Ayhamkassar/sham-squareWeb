@@ -16,6 +16,7 @@ import Sidebar, { SIDEBAR_EXPANDED, SIDEBAR_COLLAPSED, SHOW_PAYMENTS } from './S
 import DashboardScreen from '../../screens/DashboardScreen';
 import ProductsScreen from '../../screens/ProductsScreen';
 import CategoriesScreen from '../../screens/CategoriesScreen';
+import SubCategoriesScreen from '../../screens/SubCategoriesScreen';
 import InventoryScreen from '../../screens/InventoryScreen';
 import OrdersScreen from '../../screens/OrdersScreen';
 import CustomersScreen from '../../screens/CustomersScreen';
@@ -38,6 +39,7 @@ export type MainStackParamList = {
   Dashboard: undefined;
   Products: undefined;
   Categories: undefined;
+  SubCategories: undefined;
   Inventory: undefined;
   Orders: undefined;
   Customers: undefined;
@@ -72,6 +74,7 @@ function MainContentStack() {
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Products" component={ProductsScreen} />
       <Stack.Screen name="Categories" component={CategoriesScreen} />
+      <Stack.Screen name="SubCategories" component={SubCategoriesScreen} />
       <Stack.Screen name="Inventory" component={InventoryScreen} />
       <Stack.Screen name="Orders" component={OrdersScreen} />
       {SHOW_PAYMENTS && <Stack.Screen name="Payments" component={PaymentsScreen as React.ComponentType<any>} />}

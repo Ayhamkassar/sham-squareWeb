@@ -1,6 +1,7 @@
 import {
   Product,
   Category,
+  SubCategory,
   Order,
   Review,
   Role,
@@ -18,6 +19,7 @@ import {
 export interface StoreState {
   products: Product[];
   categories: Category[];
+  subCategories: SubCategory[];
   orders: Order[];
   reviews: Review[];
   roles: Role[];
@@ -45,6 +47,7 @@ const defaultSettings: StoreSettings = {
 export const initialStoreState: StoreState = {
   products: [],
   categories: [],
+  subCategories: [],
   orders: [],
   reviews: [],
   roles: [],
@@ -67,7 +70,11 @@ export type StoreAction =
   | { type: 'DELETE_PRODUCT'; payload: { id: string } }
   | { type: 'RESTOCK_PRODUCT'; payload: { id: string; amount: number } }
   | { type: 'ADD_CATEGORY'; payload: Category }
+  | { type: 'EDIT_CATEGORY'; payload: Category }
   | { type: 'DELETE_CATEGORY'; payload: { id: string } }
+  | { type: 'ADD_SUBCATEGORY'; payload: SubCategory }
+  | { type: 'EDIT_SUBCATEGORY'; payload: SubCategory }
+  | { type: 'DELETE_SUBCATEGORY'; payload: { id: string } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { id: string; status: string } }
   | { type: 'ADD_REVIEW_REPLY'; payload: { reviewId: string; replyText: string } }
   | { type: 'DELETE_REVIEW_REPLY'; payload: { reviewId: string } }
@@ -156,13 +163,51 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
       };
     }
 
+    case 'EDIT_CATEGORY': {
+      const updatedCat = action.payload;
+      return {
+        ...state,
+        categories: state.categories.map((c) => (c.id === updatedCat.id ? updatedCat : c)),
+        activityLogs: withLog(state.activityLogs, 'تعديل فئة تصنيف', `تم تعديل الفئة "${updatedCat.name}".`, 'product'),
+      };
+    }
+
     case 'DELETE_CATEGORY': {
       const target = state.categories.find((c) => c.id === action.payload.id);
       if (!target) return state;
       return {
         ...state,
         categories: state.categories.filter((c) => c.id !== target.id),
+        subCategories: state.subCategories.filter((s) => s.categoryId !== target.id),
         activityLogs: withLog(state.activityLogs, 'إزالة فئة تصنيف', `تم إلغاء واستبعاد الفئة التنسيقية "${target.name}".`, 'product'),
+      };
+    }
+
+    case 'ADD_SUBCATEGORY': {
+      const subCategory = action.payload;
+      return {
+        ...state,
+        subCategories: [...state.subCategories, subCategory],
+        activityLogs: withLog(state.activityLogs, 'إضافة تصنيف فرعي', `تم إضافة التصنيف الفرعي "${subCategory.name}".`, 'product'),
+      };
+    }
+
+    case 'EDIT_SUBCATEGORY': {
+      const updatedSubCat = action.payload;
+      return {
+        ...state,
+        subCategories: state.subCategories.map((s) => (s.id === updatedSubCat.id ? updatedSubCat : s)),
+        activityLogs: withLog(state.activityLogs, 'تعديل تصنيف فرعي', `تم تعديل التصنيف الفرعي "${updatedSubCat.name}".`, 'product'),
+      };
+    }
+
+    case 'DELETE_SUBCATEGORY': {
+      const subTarget = state.subCategories.find((s) => s.id === action.payload.id);
+      if (!subTarget) return state;
+      return {
+        ...state,
+        subCategories: state.subCategories.filter((s) => s.id !== subTarget.id),
+        activityLogs: withLog(state.activityLogs, 'حذف تصنيف فرعي', `تم حذف التصنيف الفرعي "${subTarget.name}".`, 'product'),
       };
     }
 

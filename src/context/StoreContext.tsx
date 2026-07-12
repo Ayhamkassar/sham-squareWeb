@@ -6,6 +6,7 @@ import { useAuth } from './AuthContext';
 import {
   Product,
   Category,
+  SubCategory,
   Order,
   Customer,
   Coupon,
@@ -16,6 +17,7 @@ import {
 } from '../types';
 import { productService, BackendProduct } from '../services/productService';
 import { categoryService, BackendCategory } from '../services/categoryService';
+import { subCategoryService, BackendSubCategory } from '../services/subCategoryService';
 import { orderService, BackendOrder } from '../services/orderService';
 import { userService, BackendUser } from '../services/userService';
 import { couponService, BackendCoupon } from '../services/couponService';
@@ -31,7 +33,11 @@ interface StoreContextValue {
   deleteProduct: (id: string) => Promise<void>;
   restockProduct: (id: string, amount: number) => void;
   addCategory: (name: string, icon: string, image?: string) => Promise<void>;
+  editCategory: (id: string, data: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  addSubCategory: (data: Omit<SubCategory, 'id' | 'slug' | 'createdAt'>) => Promise<void>;
+  editSubCategory: (id: string, data: Partial<SubCategory>) => Promise<void>;
+  deleteSubCategory: (id: string) => Promise<void>;
   updateOrderStatus: (id: string, status: string) => Promise<void>;
   addReviewReply: (reviewId: string, replyText: string) => void;
   deleteReviewReply: (reviewId: string) => void;
@@ -156,8 +162,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [categories, products, orders, users, coupons] = await Promise.allSettled([
+      const [categories, subCategories, products, orders, users, coupons] = await Promise.allSettled([
         categoryService.list(),
+        subCategoryService.list(),
         productService.list(),
         orderService.list(),
         userService.list(),
@@ -168,6 +175,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       if (categories.status === 'fulfilled') {
         newState.categories = categories.value.map(mapBackendCategory);
+      }
+      if (subCategories.status === 'fulfilled') {
+        newState.subCategories = subCategories.value.map((sc) => ({
+          id: sc.id,
+          categoryId: sc.categoryId,
+          name: sc.name,
+          slug: sc.slug,
+          description: sc.description,
+          image: sc.image,
+          sortOrder: sc.sortOrder,
+          isActive: sc.isActive,
+          categoryName: sc.categoryName || '',
+          productCount: sc.productCount || 0,
+          createdAt: sc.createdAt,
+        }));
       }
       if (products.status === 'fulfilled') {
         newState.products = products.value.data.map(mapBackendProduct);
@@ -278,6 +300,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [showToast]);
 
+  const editCategory = useCallback(async (id: string, data: Partial<Category>) => {
+    try {
+      const backendCategory = await categoryService.update(id, data);
+      const category: Category = {
+        id: backendCategory.id,
+        name: backendCategory.name,
+        icon: backendCategory.icon || 'Tag',
+        productCount: backendCategory.productCount ?? 0,
+        image: backendCategory.image,
+        description: backendCategory.description,
+        slug: backendCategory.slug,
+        sortOrder: backendCategory.sort_order,
+        isActive: backendCategory.is_active,
+      };
+      dispatch({ type: 'EDIT_CATEGORY', payload: category });
+      showToast(tRef.current('تم تحديث الفئة بنجاح'));
+    } catch {
+      showToast(tRef.current('فشل تحديث الفئة'), 'error');
+      throw new Error('Failed to update category');
+    }
+  }, [showToast]);
+
   const deleteCategory = useCallback(async (id: string) => {
     try {
       await categoryService.remove(id);
@@ -286,6 +330,82 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       showToast(tRef.current('فشل حذف الفئة'), 'error');
       throw new Error('Failed to delete category');
+    }
+  }, [showToast]);
+
+  const addSubCategory = useCallback(async (data: Omit<SubCategory, 'id' | 'slug' | 'createdAt'> & { slug?: string }) => {
+    try {
+      const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const backendSubCategory = await subCategoryService.create({
+        categoryId: data.categoryId,
+        name: data.name,
+        slug: slug,
+        description: data.description,
+        image: data.image,
+        sortOrder: data.sortOrder || 0,
+        isActive: data.isActive,
+      });
+      const subCategory: SubCategory = {
+        id: backendSubCategory.id,
+        categoryId: backendSubCategory.categoryId,
+        name: backendSubCategory.name,
+        slug: backendSubCategory.slug,
+        description: backendSubCategory.description,
+        image: backendSubCategory.image,
+        sortOrder: backendSubCategory.sortOrder,
+        isActive: backendSubCategory.isActive,
+        categoryName: backendSubCategory.categoryName || '',
+        productCount: backendSubCategory.productCount || 0,
+        createdAt: backendSubCategory.createdAt,
+      };
+      dispatch({ type: 'ADD_SUBCATEGORY', payload: subCategory });
+      showToast(tRef.current('تمت إضافة التصنيف الفرعي الجديد'));
+    } catch {
+      showToast(tRef.current('فشل إضافة التصنيف الفرعي'), 'error');
+      throw new Error('Failed to add sub-category');
+    }
+  }, [showToast]);
+
+  const editSubCategory = useCallback(async (id: string, data: Partial<SubCategory>) => {
+    try {
+      const backendSubCategory = await subCategoryService.update(id, {
+        categoryId: data.categoryId,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        image: data.image,
+        sortOrder: data.sortOrder,
+        isActive: data.isActive,
+      });
+      const subCategory: SubCategory = {
+        id: backendSubCategory.id,
+        categoryId: backendSubCategory.categoryId,
+        name: backendSubCategory.name,
+        slug: backendSubCategory.slug,
+        description: backendSubCategory.description,
+        image: backendSubCategory.image,
+        sortOrder: backendSubCategory.sortOrder,
+        isActive: backendSubCategory.isActive,
+        categoryName: backendSubCategory.categoryName || '',
+        productCount: backendSubCategory.productCount || 0,
+        createdAt: backendSubCategory.createdAt,
+      };
+      dispatch({ type: 'EDIT_SUBCATEGORY', payload: subCategory });
+      showToast(tRef.current('تم تحديث التصنيف الفرعي بنجاح'));
+    } catch {
+      showToast(tRef.current('فشل تحديث التصنيف الفرعي'), 'error');
+      throw new Error('Failed to update sub-category');
+    }
+  }, [showToast]);
+
+  const deleteSubCategory = useCallback(async (id: string) => {
+    try {
+      await subCategoryService.remove(id);
+      dispatch({ type: 'DELETE_SUBCATEGORY', payload: { id } });
+      showToast(tRef.current('تم حذف التصنيف الفرعي بنجاح'), 'error');
+    } catch {
+      showToast(tRef.current('فشل حذف التصنيف الفرعي'), 'error');
+      throw new Error('Failed to delete sub-category');
     }
   }, [showToast]);
 
@@ -463,7 +583,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteProduct,
     restockProduct,
     addCategory,
+    editCategory,
     deleteCategory,
+    addSubCategory,
+    editSubCategory,
+    deleteSubCategory,
     updateOrderStatus,
     addReviewReply,
     deleteReviewReply,
