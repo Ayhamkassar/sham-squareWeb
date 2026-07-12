@@ -14,22 +14,6 @@ import {
   Department,
   AdminUser,
 } from '../types';
-import {
-  INITIAL_PRODUCTS,
-  INITIAL_CATEGORIES,
-  INITIAL_ORDERS,
-  INITIAL_REVIEWS,
-  INITIAL_ROLES,
-  INITIAL_ACTIVITY_LOGS,
-  DEFAULT_SETTINGS,
-  INITIAL_CUSTOMERS,
-  INITIAL_TRANSACTIONS,
-  INITIAL_COUPONS,
-  INITIAL_NOTIFICATIONS,
-  INITIAL_SUPPORT_TICKETS,
-  INITIAL_DEPARTMENTS,
-  DEPARTMENT_ADMINS,
-} from '../data/mockData';
 
 export interface StoreState {
   products: Product[];
@@ -48,21 +32,31 @@ export interface StoreState {
   departmentAdmins: AdminUser[];
 }
 
+const defaultSettings: StoreSettings = {
+  storeName: '',
+  storeDesc: '',
+  phone: '',
+  city: '',
+  address: '',
+  logoUrl: '',
+  maintenanceMode: false,
+};
+
 export const initialStoreState: StoreState = {
-  products: INITIAL_PRODUCTS,
-  categories: INITIAL_CATEGORIES,
-  orders: INITIAL_ORDERS,
-  reviews: INITIAL_REVIEWS,
-  roles: INITIAL_ROLES,
-  activityLogs: INITIAL_ACTIVITY_LOGS,
-  storeSettings: DEFAULT_SETTINGS,
-  customers: INITIAL_CUSTOMERS,
-  transactions: INITIAL_TRANSACTIONS,
-  coupons: INITIAL_COUPONS,
-  notifications: INITIAL_NOTIFICATIONS,
-  supportTickets: INITIAL_SUPPORT_TICKETS,
-  departments: INITIAL_DEPARTMENTS,
-  departmentAdmins: DEPARTMENT_ADMINS,
+  products: [],
+  categories: [],
+  orders: [],
+  reviews: [],
+  roles: [],
+  activityLogs: [],
+  storeSettings: defaultSettings,
+  customers: [],
+  transactions: [],
+  coupons: [],
+  notifications: [],
+  supportTickets: [],
+  departments: [],
+  departmentAdmins: [],
 };
 
 export type StoreAction =

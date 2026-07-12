@@ -188,8 +188,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const storeNameSetting = settings.find((s) => s.key === 'store_name' || s.key === 'site_name');
         if (storeNameSetting) {
           newState.storeSettings = {
-            ...initialStoreState.storeSettings,
-            storeName: storeNameSetting.value?.toString() || initialStoreState.storeSettings.storeName,
+            storeName: storeNameSetting.value?.toString() || '',
+            storeDesc: '',
+            phone: '',
+            city: '',
+            address: '',
+            logoUrl: '',
+            maintenanceMode: false,
           };
         }
       } catch { /* keep defaults */ }
@@ -209,7 +214,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       dispatch({ type: 'SET_STATE', payload: newState });
     } catch {
-      // Keep mock data as fallback
+      // API unavailable — state stays empty until next refresh
     } finally {
       setLoading(false);
     }
