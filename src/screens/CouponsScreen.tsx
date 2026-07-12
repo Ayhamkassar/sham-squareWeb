@@ -24,17 +24,19 @@ export default function CouponsScreen() {
   const [description, setDescription] = useState('');
   const [expiry, setExpiry] = useState('');
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!code.trim() || !discount.trim()) return;
-    addCoupon({ id: `CPN-${Date.now()}`, code: code.trim().toUpperCase(), discount: discount.trim(), description: description.trim(), usage: '0/100', usagePercentage: 0, expiry: expiry.trim() || '—', status: 'active' });
-    setCode(''); setDiscount(''); setDescription(''); setExpiry('');
-    setModalVisible(false);
+    try {
+      await addCoupon({ code: code.trim().toUpperCase(), discount: discount.trim(), description: description.trim(), usage: '0/100', usagePercentage: 0, expiry: expiry.trim() || '—', status: 'active' });
+      setCode(''); setDiscount(''); setDescription(''); setExpiry('');
+      setModalVisible(false);
+    } catch { /* error toast shown by context */ }
   }
 
   function handleDelete(coupon: Coupon) {
     Alert.alert(t('إلغاء كوبون'), coupon.code, [
       { text: t('إلغاء'), style: 'cancel' },
-      { text: t('حذف'), style: 'destructive', onPress: () => deleteCoupon(coupon.id) },
+      { text: t('حذف'), style: 'destructive', onPress: async () => { try { await deleteCoupon(coupon.id); } catch { /* error toast shown by context */ } } },
     ]);
   }
 

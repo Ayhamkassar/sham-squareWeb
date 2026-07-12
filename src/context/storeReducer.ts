@@ -62,11 +62,11 @@ export const initialStoreState: StoreState = {
 export type StoreAction =
   | { type: 'SET_STATE'; payload: Partial<StoreState> }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'ADD_PRODUCT'; payload: Omit<Product, 'id' | 'sku'> }
+  | { type: 'ADD_PRODUCT'; payload: Product }
   | { type: 'EDIT_PRODUCT'; payload: Product }
   | { type: 'DELETE_PRODUCT'; payload: { id: string } }
   | { type: 'RESTOCK_PRODUCT'; payload: { id: string; amount: number } }
-  | { type: 'ADD_CATEGORY'; payload: { name: string; icon: string; image?: string } }
+  | { type: 'ADD_CATEGORY'; payload: Category }
   | { type: 'DELETE_CATEGORY'; payload: { id: string } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { id: string; status: string } }
   | { type: 'ADD_REVIEW_REPLY'; payload: { reviewId: string; replyText: string } }
@@ -74,7 +74,7 @@ export type StoreAction =
   | { type: 'UPDATE_ROLE_PERMISSIONS'; payload: { roleId: string; permissions: string[] } }
   | { type: 'SAVE_SETTINGS'; payload: StoreSettings }
   | { type: 'CLEAR_LOGS' }
-  | { type: 'ADD_CUSTOMER'; payload: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'> }
+  | { type: 'ADD_CUSTOMER'; payload: Customer }
   | { type: 'EDIT_CUSTOMER'; payload: Customer }
   | { type: 'ADD_COUPON'; payload: Coupon }
   | { type: 'DELETE_COUPON'; payload: { id: string } }
@@ -107,16 +107,11 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
       return { ...state } as StoreState;
 
     case 'ADD_PRODUCT': {
-      const sku = `SHM-${Math.floor(1000 + Math.random() * 9000)}`;
-      const id = `PROD-${Date.now()}`;
-      const product: Product = { ...action.payload, id, sku };
+      const product = action.payload;
       return {
         ...state,
         products: [product, ...state.products],
-        categories: state.categories.map((c) =>
-          c.name === product.category ? { ...c, productCount: c.productCount + 1 } : c
-        ),
-        activityLogs: withLog(state.activityLogs, 'إضافة منتج جديد', `تمت إضافة المنتج الفاخر "${product.name}" إلى الرفوف بنجاح.`, 'product'),
+        activityLogs: withLog(state.activityLogs, 'إضافة منتج جديد', `تمت إضافة المنتج "${product.name}" إلى الرفوف بنجاح.`, 'product'),
       };
     }
 
@@ -153,7 +148,7 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
     }
 
     case 'ADD_CATEGORY': {
-      const category: Category = { id: `CAT-${Date.now()}`, name: action.payload.name, icon: action.payload.icon, productCount: 0, image: action.payload.image };
+      const category = action.payload;
       return {
         ...state,
         categories: [...state.categories, category],
@@ -225,7 +220,7 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
       return { ...state, activityLogs: [] };
 
     case 'ADD_CUSTOMER': {
-      const customer: Customer = { ...action.payload, id: `CUST-${Date.now()}`, recentOrders: [], contactLog: [] };
+      const customer = action.payload;
       return {
         ...state,
         customers: [customer, ...state.customers],

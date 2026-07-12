@@ -16,18 +16,20 @@ export default function CategoriesScreen() {
   const [name, setName] = useState('');
   const [image, setImage] = useState('');
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!name.trim()) return;
-    addCategory(name.trim(), 'Tag', image);
-    setName('');
-    setImage('');
-    setModalVisible(false);
+    try {
+      await addCategory(name.trim(), 'Tag', image);
+      setName('');
+      setImage('');
+      setModalVisible(false);
+    } catch { /* error toast shown by context */ }
   }
 
   function handleDelete(id: string, catName: string) {
     Alert.alert(t('حذف فئة'), catName, [
       { text: t('إلغاء'), style: 'cancel' },
-      { text: t('حذف'), style: 'destructive', onPress: () => deleteCategory(id) },
+      { text: t('حذف'), style: 'destructive', onPress: async () => { try { await deleteCategory(id); } catch { /* error toast shown by context */ } } },
     ]);
   }
 

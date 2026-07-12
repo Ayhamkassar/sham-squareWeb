@@ -26,22 +26,22 @@ interface StoreContextValue {
   state: StoreState;
   loading: boolean;
   refresh: () => Promise<void>;
-  addProduct: (p: Omit<Product, 'id' | 'sku'>) => void;
-  editProduct: (p: Product) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (p: Omit<Product, 'id' | 'sku'>) => Promise<void>;
+  editProduct: (p: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   restockProduct: (id: string, amount: number) => void;
-  addCategory: (name: string, icon: string, image?: string) => void;
-  deleteCategory: (id: string) => void;
-  updateOrderStatus: (id: string, status: string) => void;
+  addCategory: (name: string, icon: string, image?: string) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  updateOrderStatus: (id: string, status: string) => Promise<void>;
   addReviewReply: (reviewId: string, replyText: string) => void;
   deleteReviewReply: (reviewId: string) => void;
-  updateRolePermissions: (roleId: string, permissions: string[]) => void;
+  updateRolePermissions: (roleId: string, permissions: string[]) => Promise<void>;
   saveSettings: (settings: StoreSettings) => void;
   clearLogs: () => void;
-  addCustomer: (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'>) => void;
-  editCustomer: (c: Customer) => void;
-  addCoupon: (c: Coupon) => void;
-  deleteCoupon: (id: string) => void;
+  addCustomer: (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'>) => Promise<void>;
+  editCustomer: (c: Customer) => Promise<void>;
+  addCoupon: (c: Omit<Coupon, 'id'>) => Promise<void>;
+  deleteCoupon: (id: string) => Promise<void>;
   markAllNotificationsRead: () => void;
   clearAllNotifications: () => void;
   markNotificationRead: (id: string) => void;
@@ -182,7 +182,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         newState.coupons = coupons.value.map(mapBackendCoupon);
       }
 
-      // Fetch settings
       try {
         const settings = await settingService.list();
         const storeNameSetting = settings.find((s) => s.key === 'store_name' || s.key === 'site_name');
@@ -199,7 +198,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
       } catch { /* keep defaults */ }
 
-      // Fetch roles
       try {
         const roles = await roleService.list();
         newState.roles = roles.map((r, idx) => ({
@@ -226,23 +224,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [isLoggedIn, fetchData]);
 
-  // Each action dispatches the domain event, then reports a user-facing toast.
-  const addProduct = useCallback((p: Omit<Product, 'id' | 'sku'>) => {
-    dispatch({ type: 'ADD_PRODUCT', payload: p });
-    productService.create(p).catch(() => {});
-    showToast(tRef.current('تمت إضافة المنتج الجديد بنجاح'));
+  // ─── Backend-first CRUD operations ──────────────────────────────────────
+
+  const addProduct = useCallback(async (p: Omit<Product, 'id' | 'sku'>) => {
+    try {
+      const response = await productService.create(p as any);
+      const product = mapBackendProduct(response.data);
+      dispatch({ type: 'ADD_PRODUCT', payload: product });
+      showToast(tRef.current('تمت إضافة المنتج الجديد بنجاح'));
+    } catch {
+      showToast(tRef.current('فشل إضافة المنتج'), 'error');
+      throw new Error('Failed to add product');
+    }
   }, [showToast]);
 
-  const editProduct = useCallback((p: Product) => {
-    dispatch({ type: 'EDIT_PRODUCT', payload: p });
-    productService.update(p.id, p as any).catch(() => {});
-    showToast(tRef.current('تم تحديث بيانات المنتج'));
+  const editProduct = useCallback(async (p: Product) => {
+    try {
+      const response = await productService.update(p.id, p as any);
+      const product = mapBackendProduct(response.data);
+      dispatch({ type: 'EDIT_PRODUCT', payload: product });
+      showToast(tRef.current('تم تحديث بيانات المنتج'));
+    } catch {
+      showToast(tRef.current('فشل تحديث المنتج'), 'error');
+      throw new Error('Failed to update product');
+    }
   }, [showToast]);
 
-  const deleteProduct = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_PRODUCT', payload: { id } });
-    productService.remove(id).catch(() => {});
-    showToast(tRef.current('تم حذف المنتج بنجاح'), 'error');
+  const deleteProduct = useCallback(async (id: string) => {
+    try {
+      await productService.remove(id);
+      dispatch({ type: 'DELETE_PRODUCT', payload: { id } });
+      showToast(tRef.current('تم حذف المنتج بنجاح'), 'error');
+    } catch {
+      showToast(tRef.current('فشل حذف المنتج'), 'error');
+      throw new Error('Failed to delete product');
+    }
   }, [showToast]);
 
   const restockProduct = useCallback((id: string, amount: number) => {
@@ -250,22 +266,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(`${tRef.current('تمت إضافة')} ${amount} ${tRef.current('قطعة')} ${tRef.current('للمخزون')}`);
   }, [showToast]);
 
-  const addCategory = useCallback((name: string, icon: string, image?: string) => {
-    dispatch({ type: 'ADD_CATEGORY', payload: { name, icon, image } });
-    categoryService.create({ name, image }).catch(() => {});
-    showToast(tRef.current('تمت إضافة الفئة الجديدة'));
+  const addCategory = useCallback(async (name: string, icon: string, image?: string) => {
+    try {
+      const backendCategory = await categoryService.create({ name, image });
+      const category = mapBackendCategory(backendCategory);
+      dispatch({ type: 'ADD_CATEGORY', payload: category });
+      showToast(tRef.current('تمت إضافة الفئة الجديدة'));
+    } catch {
+      showToast(tRef.current('فشل إضافة الفئة'), 'error');
+      throw new Error('Failed to add category');
+    }
   }, [showToast]);
 
-  const deleteCategory = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_CATEGORY', payload: { id } });
-    categoryService.remove(id).catch(() => {});
-    showToast(tRef.current('تم حذف الفئة بنجاح'), 'error');
+  const deleteCategory = useCallback(async (id: string) => {
+    try {
+      await categoryService.remove(id);
+      dispatch({ type: 'DELETE_CATEGORY', payload: { id } });
+      showToast(tRef.current('تم حذف الفئة بنجاح'), 'error');
+    } catch {
+      showToast(tRef.current('فشل حذف الفئة'), 'error');
+      throw new Error('Failed to delete category');
+    }
   }, [showToast]);
 
-  const updateOrderStatus = useCallback((id: string, status: string) => {
-    dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { id, status } });
-    orderService.update(id, { status: status.toUpperCase() }).catch(() => {});
-    showToast(`${tRef.current('تم تحديث حالة الطلب إلى')} ${status}`);
+  const updateOrderStatus = useCallback(async (id: string, status: string) => {
+    try {
+      await orderService.update(id, { status: status.toUpperCase() });
+      dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { id, status } });
+      showToast(`${tRef.current('تم تحديث حالة الطلب إلى')} ${status}`);
+    } catch {
+      showToast(tRef.current('فشل تحديث حالة الطلب'), 'error');
+      throw new Error('Failed to update order status');
+    }
   }, [showToast]);
 
   const addReviewReply = useCallback((reviewId: string, replyText: string) => {
@@ -278,10 +310,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(tRef.current('تم حذف الرد'), 'info');
   }, [showToast]);
 
-  const updateRolePermissions = useCallback((roleId: string, permissions: string[]) => {
-    dispatch({ type: 'UPDATE_ROLE_PERMISSIONS', payload: { roleId, permissions } });
-    roleService.update(roleId, { permissions } as any).catch(() => {});
-    showToast(tRef.current('تم تحديث صلاحيات المشرف'));
+  const updateRolePermissions = useCallback(async (roleId: string, permissions: string[]) => {
+    try {
+      await roleService.update(roleId, { permissions } as any);
+      dispatch({ type: 'UPDATE_ROLE_PERMISSIONS', payload: { roleId, permissions } });
+      showToast(tRef.current('تم تحديث صلاحيات المشرف'));
+    } catch {
+      showToast(tRef.current('فشل تحديث الصلاحيات'), 'error');
+      throw new Error('Failed to update role permissions');
+    }
   }, [showToast]);
 
   const saveSettings = useCallback((settings: StoreSettings) => {
@@ -294,40 +331,65 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(tRef.current('تم تفريغ السجل بالكامل'), 'info');
   }, [showToast]);
 
-  const addCustomer = useCallback((c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'>) => {
-    dispatch({ type: 'ADD_CUSTOMER', payload: c });
-    userService.create({
-      email: c.email,
-      phone: c.phone,
-      first_name: c.name,
-    } as any).catch(() => {});
-    showToast(tRef.current('تمت إضافة العميل بنجاح'));
+  const addCustomer = useCallback(async (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'>) => {
+    try {
+      const backendUser = await userService.create({
+        email: c.email,
+        phone: c.phone,
+        first_name: c.name,
+      } as any);
+      const customer = mapBackendUser(backendUser);
+      dispatch({ type: 'ADD_CUSTOMER', payload: customer });
+      showToast(tRef.current('تمت إضافة العميل بنجاح'));
+    } catch {
+      showToast(tRef.current('فشل إضافة العميل'), 'error');
+      throw new Error('Failed to add customer');
+    }
   }, [showToast]);
 
-  const editCustomer = useCallback((c: Customer) => {
-    dispatch({ type: 'EDIT_CUSTOMER', payload: c });
-    userService.update(c.id, {
-      email: c.email,
-      phone: c.phone,
-      first_name: c.name,
-    } as any).catch(() => {});
-    showToast(tRef.current('تم تحديث ملف العميل بنجاح'));
+  const editCustomer = useCallback(async (c: Customer) => {
+    try {
+      const backendUser = await userService.update(c.id, {
+        email: c.email,
+        phone: c.phone,
+        first_name: c.name,
+      } as any);
+      const customer = mapBackendUser(backendUser);
+      dispatch({ type: 'EDIT_CUSTOMER', payload: customer });
+      showToast(tRef.current('تم تحديث ملف العميل بنجاح'));
+    } catch {
+      showToast(tRef.current('فشل تحديث العميل'), 'error');
+      throw new Error('Failed to update customer');
+    }
   }, [showToast]);
 
-  const addCoupon = useCallback((c: Coupon) => {
-    dispatch({ type: 'ADD_COUPON', payload: c });
-    couponService.create({
-      code: c.code,
-      description: c.description,
-    }).catch(() => {});
-    showToast(tRef.current('تم إطلاق كوبون الخصم الجديد بنجاح'));
+  const addCoupon = useCallback(async (c: Omit<Coupon, 'id'>) => {
+    try {
+      const backendCoupon = await couponService.create({
+        code: c.code,
+        description: c.description,
+      });
+      const coupon = mapBackendCoupon(backendCoupon);
+      dispatch({ type: 'ADD_COUPON', payload: coupon });
+      showToast(tRef.current('تم إطلاق كوبون الخصم الجديد بنجاح'));
+    } catch {
+      showToast(tRef.current('فشل إضافة الكوبون'), 'error');
+      throw new Error('Failed to add coupon');
+    }
   }, [showToast]);
 
-  const deleteCoupon = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_COUPON', payload: { id } });
-    couponService.remove(id).catch(() => {});
-    showToast(tRef.current('تم إلغاء الكوبون'), 'error');
+  const deleteCoupon = useCallback(async (id: string) => {
+    try {
+      await couponService.remove(id);
+      dispatch({ type: 'DELETE_COUPON', payload: { id } });
+      showToast(tRef.current('تم إلغاء الكوبون'), 'error');
+    } catch {
+      showToast(tRef.current('فشل حذف الكوبون'), 'error');
+      throw new Error('Failed to delete coupon');
+    }
   }, [showToast]);
+
+  // ─── Local-only operations (no backend API yet) ─────────────────────────
 
   const markAllNotificationsRead = useCallback(() => {
     dispatch({ type: 'MARK_ALL_NOTIFICATIONS_READ' });

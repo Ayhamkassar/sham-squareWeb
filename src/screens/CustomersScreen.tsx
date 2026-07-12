@@ -29,11 +29,13 @@ export default function CustomersScreen() {
 
   const customers = state.customers.filter((c) => c.name.includes(query) || c.phone.includes(query));
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!name.trim() || !phone.trim()) return;
-    addCustomer({ name: name.trim(), phone: phone.trim(), email: email.trim(), city: city.trim(), status: 'Active', totalOrders: 0, lifetimeValue: 0, memberSince: new Date().toISOString().slice(0, 10) });
-    setName(''); setPhone(''); setEmail(''); setCity('');
-    setModalVisible(false);
+    try {
+      await addCustomer({ name: name.trim(), phone: phone.trim(), email: email.trim(), city: city.trim(), status: 'Active', totalOrders: 0, lifetimeValue: 0, memberSince: new Date().toISOString().slice(0, 10) });
+      setName(''); setPhone(''); setEmail(''); setCity('');
+      setModalVisible(false);
+    } catch { /* error toast shown by context */ }
   }
 
   return (

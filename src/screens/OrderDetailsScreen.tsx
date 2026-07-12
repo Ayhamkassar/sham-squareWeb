@@ -106,7 +106,7 @@ export default function OrderDetailsScreen({ route }: Props) {
             return (
               <Pressable
                 key={status}
-                onPress={() => updateOrderStatus(order.id, status)}
+                onPress={async () => { try { await updateOrderStatus(order.id, status); } catch { /* error toast shown by context */ } }}
                 style={[
                   styles.statusBtn,
                   {

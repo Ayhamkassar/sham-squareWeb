@@ -80,24 +80,26 @@ export default function ProductsScreen() {
     setModalVisible(true);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const price = Number(form.price) || 0;
     const stock = Number(form.stock) || 0;
     const deptId = isDepartmentAdmin && adminDepartmentId ? adminDepartmentId : form.departmentId || state.departments[0]?.id || '';
-    if (editingId) {
-      const existing = state.products.find((p) => p.id === editingId);
-      if (!existing) return;
-      editProduct({ ...existing, name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image, isFeatured: form.isFeatured, isAvailable: stock > 0 });
-    } else {
-      addProduct({ name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image || '', isAvailable: stock > 0, isFeatured: form.isFeatured });
-    }
-    setModalVisible(false);
+    try {
+      if (editingId) {
+        const existing = state.products.find((p) => p.id === editingId);
+        if (!existing) return;
+        await editProduct({ ...existing, name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image, isFeatured: form.isFeatured, isAvailable: stock > 0 });
+      } else {
+        await addProduct({ name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image || '', isAvailable: stock > 0, isFeatured: form.isFeatured });
+      }
+      setModalVisible(false);
+    } catch { /* error toast shown by context */ }
   }
 
   function handleDelete(product: Product) {
     Alert.alert(t('حذف منتج'), `${t('تم سحب المنتج')} "${product.name}"?`, [
       { text: t('إلغاء'), style: 'cancel' },
-      { text: t('حذف'), style: 'destructive', onPress: () => deleteProduct(product.id) },
+      { text: t('حذف'), style: 'destructive', onPress: async () => { try { await deleteProduct(product.id); } catch { /* error toast shown by context */ } } },
     ]);
   }
 

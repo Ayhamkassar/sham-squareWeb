@@ -30,10 +30,12 @@ export default function RolesScreen() {
     setTempPermissions((prev) => prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]);
   }
 
-  function save() {
+  async function save() {
     if (!editingRole) return;
-    updateRolePermissions(editingRole.id, tempPermissions);
-    setEditingRole(null);
+    try {
+      await updateRolePermissions(editingRole.id, tempPermissions);
+      setEditingRole(null);
+    } catch { /* error toast shown by context */ }
   }
 
   return (
