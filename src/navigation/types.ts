@@ -1,6 +1,5 @@
 import { Order, Customer } from '../types';
 
-/** Drawer holds every primary section — mirrors the original Sidebar nav items. */
 export type DrawerParamList = {
   Dashboard: undefined;
   Products: undefined;
@@ -20,11 +19,12 @@ export type DrawerParamList = {
   DepartmentAdminManagement: undefined;
 };
 
-/** Root stack wraps the Drawer and pushes detail screens above it (modal-style). */
 export type RootStackParamList = {
   Main: undefined;
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { identifier?: string } | undefined;
   OrderDetails: { order: Order };
   CustomerDetails: { customer: Customer };
 };

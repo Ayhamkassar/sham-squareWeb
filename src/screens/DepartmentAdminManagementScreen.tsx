@@ -5,7 +5,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useLocale } from '../i18n/LocaleContext';
 import { useStore } from '../context/StoreContext';
 import { ScreenContainer } from '../components/layout';
-import { Card, Badge, SearchBar, Button, EmptyState, Input, Modal, Avatar, SegmentedControl } from '../components/ui';
+import { Card, Badge, SearchBar, Button, EmptyState, Input, Modal, Avatar, SegmentedControl, ImageUpload } from '../components/ui';
 import { AdminUser } from '../types';
 
 const ITEMS_PER_PAGE = 5;
@@ -45,7 +45,7 @@ export default function DepartmentAdminManagementScreen() {
   const EMPTY_FORM: AdminFormData = {
     name: '', email: '', password: '', phone: '',
     departmentId: '', status: 'active', role: t('مشرف قسم'),
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    avatar: '',
   };
   const [form, setForm] = useState<AdminFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof AdminFormData, string>>>({});
@@ -292,6 +292,7 @@ export default function DepartmentAdminManagementScreen() {
           secureTextEntry
           error={errors.password}
         />
+        <ImageUpload label={t('الصورة الشخصية')} value={form.avatar} onChange={(v) => setForm((f) => ({ ...f, avatar: v }))} folder="users" />
         <Input
           label={t('رقم الهاتف')}
           value={form.phone}

@@ -11,3 +11,4 @@ export { default as Divider } from './Divider';
 export { default as ProgressBar } from './ProgressBar';
 export { default as StatCard } from './StatCard';
 export { default as SegmentedControl } from './SegmentedControl';
+export { default as ImageUpload } from './ImageUpload';

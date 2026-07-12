@@ -48,8 +48,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
         phone: phone.trim(),
         password,
       });
-      // بعد نجاح التسجيل، الـ AuthContext المفروض يسجل دخول تلقائي
-      // أو ينقل المستخدم لصفحة تسجيل الدخول - عدّل حسب منطق تطبيقك
+
     } catch (err: any) {
       setError(err?.message || t('حدث خطأ أثناء إنشاء الحساب'));
     }

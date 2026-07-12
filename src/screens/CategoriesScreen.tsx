@@ -5,7 +5,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useLocale } from '../i18n/LocaleContext';
 import { useStore } from '../context/StoreContext';
 import { ScreenContainer } from '../components/layout';
-import { Card, Badge, Button, EmptyState, Input, Modal } from '../components/ui';
+import { Card, Badge, Button, EmptyState, Input, Modal, ImageUpload } from '../components/ui';
 
 export default function CategoriesScreen() {
   const { theme } = useTheme();
@@ -14,11 +14,13 @@ export default function CategoriesScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [name, setName] = useState('');
+  const [image, setImage] = useState('');
 
   function handleAdd() {
     if (!name.trim()) return;
-    addCategory(name.trim(), 'Tag');
+    addCategory(name.trim(), 'Tag', image);
     setName('');
+    setImage('');
     setModalVisible(false);
   }
 
@@ -57,6 +59,7 @@ export default function CategoriesScreen() {
 
       <Modal visible={modalVisible} title={t('إضافة فئة')} onClose={() => setModalVisible(false)}>
         <Input label={t('اسم الفئة')} value={name} onChangeText={setName} />
+        <ImageUpload label={t('صورة الفئة')} value={image} onChange={setImage} folder="categories" />
         <Button label={t('إضافة')} onPress={handleAdd} fullWidth />
       </Modal>
     </ScreenContainer>

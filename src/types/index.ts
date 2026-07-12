@@ -46,6 +46,7 @@ export interface Category {
   name: string;
   icon: string;
   productCount: number;
+  image?: string;
 }
 
 export interface OrderItem {

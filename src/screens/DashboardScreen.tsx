@@ -16,18 +16,10 @@ import { ORDER_STATUS_TONE, ORDER_STATUS_LABEL } from './orderStatus';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const CHART_DATA = [
-  { label: 'يناير', value: 65, secondary: 40 },
-  { label: 'فبراير', value: 45, secondary: 30 },
-  { label: 'مارس', value: 80, secondary: 55 },
-  { label: 'أبريل', value: 55, secondary: 35 },
-  { label: 'مايو', value: 90, secondary: 60 },
-  { label: 'يونيو', value: 70, secondary: 50 },
-  { label: 'يوليو', value: 85, secondary: 58 },
-];
-
 const PERIODS = ['أسبوع', 'شهر', 'سنة'];
 const PERIOD_OPTIONS = PERIODS.map((p) => ({ key: p, label: p }));
+
+const CHART_DATA: { label: string; value: number; secondary: number }[] = [];
 
 export default function DashboardScreen() {
   const { theme } = useTheme();
@@ -100,28 +92,24 @@ export default function DashboardScreen() {
           icon="cash-outline"
           label={t('إجمالي المبيعات')}
           value={formatCurrency(totalSales)}
-          trend="+12.4%"
           color={theme.colors.accent}
         />
         <StatCard
           icon="receipt-outline"
           label={t('طلبات اليوم')}
           value={String(scopedOrders.length)}
-          trend="+4.1%"
           color={theme.colors.info}
         />
         <StatCard
           icon="cube-outline"
           label={t('المنتجات النشطة')}
           value={String(activeProductsCount)}
-          trend="+8.2%"
           color={theme.colors.success}
         />
         <StatCard
           icon="people-outline"
           label={t('العملاء')}
           value={String(state.customers.length)}
-          trend="+2.3%"
           color={theme.colors.warning}
         />
       </View>

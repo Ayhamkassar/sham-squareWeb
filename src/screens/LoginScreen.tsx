@@ -84,17 +84,21 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
             size="lg"
             disabled={authLoading}
           />
-          <Pressable
-  onPress={() => navigation.navigate('Register')}
-  style={styles.switchAuthRow}
->
-  <Text style={{ color: theme.colors.textMuted, fontSize: 13 }}>
-    {t('ليس لديك حساب؟')}{' '}
-  </Text>
-  <Text style={{ color: theme.colors.accent, fontSize: 13, fontWeight: '700' }}>
-    {t('أنشئ واحد')}
-  </Text>
-</Pressable>
+
+          <Pressable onPress={() => navigation.navigate('ForgotPassword')} style={styles.switchAuthRow}>
+            <Text style={{ color: theme.colors.accent, fontSize: 12, fontWeight: '600' }}>
+              {t('نسيت كلمة المرور؟')}
+            </Text>
+          </Pressable>
+
+          <Pressable onPress={() => navigation.navigate('Register')} style={styles.switchAuthRow}>
+            <Text style={{ color: theme.colors.textMuted, fontSize: 13 }}>
+              {t('ليس لديك حساب؟')}{' '}
+            </Text>
+            <Text style={{ color: theme.colors.accent, fontSize: 13, fontWeight: '700' }}>
+              {t('أنشئ واحد')}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </KeyboardAvoidingView>

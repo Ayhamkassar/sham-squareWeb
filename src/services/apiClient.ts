@@ -1,8 +1,5 @@
-// Central API client configuration
-// Direct API calls without mock data
 import { API_BASE_URL } from '../config/env';
 import { authService } from './authService';
-import { UploadResult } from '../types/backend-api.types';
 
 export class ApiError extends Error {
   status: number;
@@ -27,6 +24,21 @@ async function parseJson<T>(res: Response): Promise<T> {
   try { return JSON.parse(text); } catch { return {} as T; }
 }
 
+let isRefreshing = false;
+let refreshQueue: Array<{ resolve: (token: string) => void; reject: (err: any) => void }> = [];
+
+async function processRefreshQueue(newToken: string) {
+  const queue = [...refreshQueue];
+  refreshQueue = [];
+  queue.forEach(({ resolve }) => resolve(newToken));
+}
+
+async function failRefreshQueue(err: any) {
+  const queue = [...refreshQueue];
+  refreshQueue = [];
+  queue.forEach(({ reject }) => reject(err));
+}
+
 async function request<T = any>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const tokens = await authService.getTokens();
   const headers: Record<string, string> = {
@@ -46,23 +58,60 @@ async function request<T = any>(path: string, init: RequestInit = {}, retry = tr
     throw new ApiError(error?.message || 'Network error', 0, { code: 'NETWORK_ERROR' });
   }
 
-  if (res.status === 401 && retry && tokens.refresh) {
-    try {
-      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: tokens.refresh }),
-      });
-      if (refreshRes.ok) {
-        const payload = await parseJson<any>(refreshRes);
-        const newTokens = payload?.data?.tokens;
-        if (newTokens) {
-          await authService.saveTokens(newTokens.accessToken, newTokens.refreshToken);
-          return request<T>(path, init, false);
+  if (res.status === 401 && tokens.refresh) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: tokens.refresh }),
+        });
+        if (refreshRes.ok) {
+          const payload = await parseJson<any>(refreshRes);
+          const newAccessToken = payload?.data?.tokens?.accessToken || payload?.accessToken;
+          if (newAccessToken) {
+            await authService.saveTokens(newAccessToken, tokens.refresh);
+            processRefreshQueue(newAccessToken);
+            isRefreshing = false;
+            headers['Authorization'] = `Bearer ${newAccessToken}`;
+            res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+            if (!res.ok) {
+              const errPayload = await parseJson<any>(res);
+              throw new ApiError(errPayload?.message || `Request failed with status ${res.status}`, res.status, errPayload);
+            }
+            return parseJson<T>(res);
+          }
         }
+        await authService.clearTokens();
+        failRefreshQueue(new Error('Refresh failed'));
+        isRefreshing = false;
+        throw new ApiError('Session expired', 401, { code: 'SESSION_EXPIRED' });
+      } catch (refreshError) {
+        isRefreshing = false;
+        failRefreshQueue(refreshError);
+        throw refreshError instanceof ApiError ? refreshError : new ApiError('Session expired', 401, { code: 'SESSION_EXPIRED' });
       }
-    } catch {
-      // refresh failed, continue to error handling
+    } else {
+      return new Promise<T>((resolve, reject) => {
+        refreshQueue.push({
+          resolve: async (newToken: string) => {
+            headers['Authorization'] = `Bearer ${newToken}`;
+            try {
+              const retryRes = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+              if (!retryRes.ok) {
+                const errPayload = await parseJson<any>(retryRes);
+                reject(new ApiError(errPayload?.message || `Request failed`, retryRes.status, errPayload));
+                return;
+              }
+              resolve(await parseJson<T>(retryRes));
+            } catch (err) {
+              reject(err);
+            }
+          },
+          reject: (err) => reject(err),
+        });
+      });
     }
   }
 
@@ -107,22 +156,59 @@ export async function postFormData<T = any>(path: string, formData: FormData): P
   }
 
   if (res.status === 401 && tokens.refresh) {
-    try {
-      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: tokens.refresh }),
-      });
-      if (refreshRes.ok) {
-        const payload = await parseJson<any>(refreshRes);
-        const newTokens = payload?.data?.tokens;
-        if (newTokens) {
-          await authService.saveTokens(newTokens.accessToken, newTokens.refreshToken);
-          return postFormData<T>(path, formData);
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: tokens.refresh }),
+        });
+        if (refreshRes.ok) {
+          const payload = await parseJson<any>(refreshRes);
+          const newAccessToken = payload?.data?.tokens?.accessToken || payload?.accessToken;
+          if (newAccessToken) {
+            await authService.saveTokens(newAccessToken, tokens.refresh);
+            processRefreshQueue(newAccessToken);
+            isRefreshing = false;
+            headers['Authorization'] = `Bearer ${newAccessToken}`;
+            res = await fetch(`${API_BASE_URL}${path}`, { method: 'POST', headers, body: formData });
+            if (!res.ok) {
+              const errPayload = await parseJson<any>(res);
+              throw new ApiError(errPayload?.message || `Request failed`, res.status, errPayload);
+            }
+            return parseJson<T>(res);
+          }
         }
+        await authService.clearTokens();
+        failRefreshQueue(new Error('Refresh failed'));
+        isRefreshing = false;
+        throw new ApiError('Session expired', 401, { code: 'SESSION_EXPIRED' });
+      } catch (err) {
+        isRefreshing = false;
+        failRefreshQueue(err);
+        throw err;
       }
-    } catch {
-      // refresh failed, continue to error handling
+    } else {
+      return new Promise<T>((resolve, reject) => {
+        refreshQueue.push({
+          resolve: async (newToken: string) => {
+            headers['Authorization'] = `Bearer ${newToken}`;
+            try {
+              const retryRes = await fetch(`${API_BASE_URL}${path}`, { method: 'POST', headers, body: formData });
+              if (!retryRes.ok) {
+                const errPayload = await parseJson<any>(retryRes);
+                reject(new ApiError(errPayload?.message || `Request failed`, retryRes.status, errPayload));
+                return;
+              }
+              resolve(await parseJson<T>(retryRes));
+            } catch (err) {
+              reject(err);
+            }
+          },
+          reject: (err) => reject(err),
+        });
+      });
     }
   }
 

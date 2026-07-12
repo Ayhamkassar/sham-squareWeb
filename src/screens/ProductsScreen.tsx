@@ -6,7 +6,7 @@ import { useLocale } from '../i18n/LocaleContext';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import { ScreenContainer } from '../components/layout';
-import { Card, Badge, SearchBar, Button, EmptyState, Input, Modal, SegmentedControl } from '../components/ui';
+import { Card, Badge, SearchBar, Button, EmptyState, Input, Modal, SegmentedControl, ImageUpload } from '../components/ui';
 import { formatCurrency } from '../utils/formatters';
 import { Product } from '../types';
 
@@ -89,7 +89,7 @@ export default function ProductsScreen() {
       if (!existing) return;
       editProduct({ ...existing, name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image, isFeatured: form.isFeatured, isAvailable: stock > 0 });
     } else {
-      addProduct({ name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image || 'https://placehold.co/200x200', isAvailable: stock > 0, isFeatured: form.isFeatured });
+      addProduct({ name: form.name, description: form.description, price, stock, category: form.category, departmentId: deptId, image: form.image || '', isAvailable: stock > 0, isFeatured: form.isFeatured });
     }
     setModalVisible(false);
   }
@@ -172,7 +172,7 @@ export default function ProductsScreen() {
             })
           )}
         </View>
-        <Input label={t('رابط الصورة')} value={form.image} onChangeText={(v) => setForm((f) => ({ ...f, image: v }))} />
+        <ImageUpload label={t('صورة المنتج')} value={form.image} onChange={(v) => setForm((f) => ({ ...f, image: v }))} folder="products" />
         <View style={styles.switchRow}>
           <Text style={{ color: theme.colors.textSecondary, fontSize: 13, fontWeight: '500' }}>{t('منتج مميز')}</Text>
           <Switch value={form.isFeatured} onValueChange={(v) => setForm((f) => ({ ...f, isFeatured: v }))} />

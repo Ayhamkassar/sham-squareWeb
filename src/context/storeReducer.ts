@@ -66,7 +66,7 @@ export type StoreAction =
   | { type: 'EDIT_PRODUCT'; payload: Product }
   | { type: 'DELETE_PRODUCT'; payload: { id: string } }
   | { type: 'RESTOCK_PRODUCT'; payload: { id: string; amount: number } }
-  | { type: 'ADD_CATEGORY'; payload: { name: string; icon: string } }
+  | { type: 'ADD_CATEGORY'; payload: { name: string; icon: string; image?: string } }
   | { type: 'DELETE_CATEGORY'; payload: { id: string } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { id: string; status: string } }
   | { type: 'ADD_REVIEW_REPLY'; payload: { reviewId: string; replyText: string } }
@@ -153,7 +153,7 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
     }
 
     case 'ADD_CATEGORY': {
-      const category: Category = { id: `CAT-${Date.now()}`, name: action.payload.name, icon: action.payload.icon, productCount: 0 };
+      const category: Category = { id: `CAT-${Date.now()}`, name: action.payload.name, icon: action.payload.icon, productCount: 0, image: action.payload.image };
       return {
         ...state,
         categories: [...state.categories, category],

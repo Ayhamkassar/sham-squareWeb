@@ -30,7 +30,7 @@ interface StoreContextValue {
   editProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
   restockProduct: (id: string, amount: number) => void;
-  addCategory: (name: string, icon: string) => void;
+  addCategory: (name: string, icon: string, image?: string) => void;
   deleteCategory: (id: string) => void;
   updateOrderStatus: (id: string, status: string) => void;
   addReviewReply: (reviewId: string, replyText: string) => void;
@@ -250,9 +250,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(`${tRef.current('تمت إضافة')} ${amount} ${tRef.current('قطعة')} ${tRef.current('للمخزون')}`);
   }, [showToast]);
 
-  const addCategory = useCallback((name: string, icon: string) => {
-    dispatch({ type: 'ADD_CATEGORY', payload: { name, icon } });
-    categoryService.create({ name }).catch(() => {});
+  const addCategory = useCallback((name: string, icon: string, image?: string) => {
+    dispatch({ type: 'ADD_CATEGORY', payload: { name, icon, image } });
+    categoryService.create({ name, image }).catch(() => {});
     showToast(tRef.current('تمت إضافة الفئة الجديدة'));
   }, [showToast]);
 

@@ -6,7 +6,7 @@ import { useLocale } from '../i18n/LocaleContext';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import { ScreenContainer } from '../components/layout';
-import { Card, Button, Input, Avatar, Modal } from '../components/ui';
+import { Card, Button, Input, Avatar, Modal, ImageUpload } from '../components/ui';
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
@@ -67,6 +67,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>{t('الإعدادات العامة')}</Text>
         </View>
         <Text style={[styles.sectionDesc, { color: theme.colors.textMuted }]}>{t('بيانات المتجر الأساسية')}</Text>
+        <ImageUpload label={t('شعار المتجر')} value={form.logoUrl} onChange={(v) => setForm((f) => ({ ...f, logoUrl: v }))} folder="users" />
         <Input label={t('اسم المتجر')} value={form.storeName} onChangeText={(v) => setForm((f) => ({ ...f, storeName: v }))} />
         <Input label={t('وصف ونبذة المتجر')} value={form.storeDesc} onChangeText={(v) => setForm((f) => ({ ...f, storeDesc: v }))} multiline />
         <Input label={t('رقم هاتف الدعم والاتصال')} value={form.phone} onChangeText={(v) => setForm((f) => ({ ...f, phone: v }))} keyboardType="phone-pad" />
