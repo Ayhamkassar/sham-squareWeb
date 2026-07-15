@@ -144,11 +144,11 @@ export const authService = {
   },
 
   async sendOtp(phone: string): Promise<void> {
-    await postJson('/web-auth/send-otp', { phone });
+    await postJson('/send-otp', { phone });
   },
 
   async verifyOtp(phone: string, code: string): Promise<void> {
-    await postJson('/web-auth/verify-otp', { phone, code });
+    await postJson('/verify-otp', { phone, otp: code });
   },
 
   async logout(): Promise<void> {

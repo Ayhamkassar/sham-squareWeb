@@ -26,6 +26,7 @@ export type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   ResetPassword: { identifier?: string } | undefined;
+  OtpVerification: { phone: string } | undefined;
   OrderDetails: { order: Order };
   CustomerDetails: { customer: Customer };
 };
