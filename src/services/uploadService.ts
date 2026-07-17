@@ -4,7 +4,7 @@ import { postFormData, postJson } from './apiClient';
 import { UploadResult } from '../types/backend-api.types';
 
 export async function uploadByUrl(fileUrl: string, folder: string = 'users', resourceId?: string) {
-  return postJson('/api/v1/upload/by-url', { fileUrl, folder, resourceId });
+  return postJson('/upload/by-url', { fileUrl, folder, resourceId });
 }
 
 export async function uploadByFile(file: File, folder: string = 'users', resourceId?: string) {
@@ -13,7 +13,7 @@ export async function uploadByFile(file: File, folder: string = 'users', resourc
   formData.append('folder', folder);
   if (resourceId) formData.append('resourceId', resourceId);
 
-  return postFormData<UploadResult>('/api/v1/upload/upload', formData);
+  return postFormData<UploadResult>('/upload', formData);
 }
 
 export async function uploadMultiple(files: File[], folder: string = 'users', resourceId?: string) {
@@ -24,7 +24,7 @@ export async function uploadMultiple(files: File[], folder: string = 'users', re
   formData.append('folder', folder);
   if (resourceId) formData.append('resourceId', resourceId);
 
-  return postFormData<UploadResult[]>('/api/v1/upload/upload-multiple', formData);
+  return postFormData<UploadResult[]>('/upload/upload-multiple', formData);
 }
 
 export default {
