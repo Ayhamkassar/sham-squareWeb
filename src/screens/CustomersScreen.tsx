@@ -20,15 +20,19 @@ interface CustomerFormState {
   phone: string;
   email: string;
   city: string;
+  password: string;
+  confirmPassword: string;
 }
 
 interface ValidationErrors {
   name?: string;
   phone?: string;
   email?: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
-const EMPTY_FORM: CustomerFormState = { name: '', phone: '', email: '', city: '' };
+const EMPTY_FORM: CustomerFormState = { name: '', phone: '', email: '', city: '', password: '', confirmPassword: '' };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -51,6 +55,9 @@ export default function CustomersScreen() {
     if (!form.name.trim()) newErrors.name = t('اسم العميل مطلوب');
     if (!form.phone.trim()) newErrors.phone = t('رقم الهاتف مطلوب');
     if (form.email.trim() && !EMAIL_REGEX.test(form.email.trim())) newErrors.email = t('البريد الإلكتروني غير صالح');
+    if (!form.password) newErrors.password = t('كلمة المرور مطلوبة');
+    else if (form.password.length < 8) newErrors.password = t('يجب أن تكون 8 محارف على الأقل');
+    if (form.password !== form.confirmPassword) newErrors.confirmPassword = t('كلمتا المرور غير متطابقتين');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -70,12 +77,14 @@ export default function CustomersScreen() {
         phone: form.phone.trim(),
         email: form.email.trim(),
         city: form.city.trim(),
+        password: form.password,
         status: 'Active',
         totalOrders: 0,
         lifetimeValue: 0,
         memberSince: new Date().toISOString().slice(0, 10),
       });
       setModalVisible(false);
+      setForm(EMPTY_FORM);
     } catch {
       // error toast shown by context
     } finally {
@@ -86,6 +95,7 @@ export default function CustomersScreen() {
   function handleClose() {
     setModalVisible(false);
     setErrors({});
+    setForm(EMPTY_FORM);
   }
 
   return (
@@ -151,6 +161,24 @@ export default function CustomersScreen() {
             onChangeText={(v) => setForm((f) => ({ ...f, city: v }))}
             placeholder={t('المدينة (اختياري)')}
             icon="location-outline"
+          />
+          <Input
+            label={t('كلمة المرور')}
+            value={form.password}
+            onChangeText={(v) => { setForm((f) => ({ ...f, password: v })); setErrors((e) => ({ ...e, password: undefined, confirmPassword: undefined })); }}
+            placeholder={t('8 محارف على الأقل')}
+            secureTextEntry
+            error={errors.password}
+            icon="lock-closed-outline"
+          />
+          <Input
+            label={t('تأكيد كلمة المرور')}
+            value={form.confirmPassword}
+            onChangeText={(v) => { setForm((f) => ({ ...f, confirmPassword: v })); setErrors((e) => ({ ...e, confirmPassword: undefined })); }}
+            placeholder={t('أعد إدخال كلمة المرور')}
+            secureTextEntry
+            error={errors.confirmPassword}
+            icon="lock-closed-outline"
           />
 
           <View style={styles.modalButtons}>

@@ -38,7 +38,6 @@ const NAV_SECTIONS: { title?: string; items: NavItem[] }[] = [
   {
     title: 'العملاء',
     items: [
-      { route: 'Customers', labelAr: 'العملاء', icon: 'people-outline' },
       { route: 'Support', labelAr: 'الدعم الفني', icon: 'headset-outline' },
       { route: 'Reviews', labelAr: 'التقييمات', icon: 'star-outline' },
     ],

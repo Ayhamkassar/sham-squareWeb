@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { useLocale } from '../i18n/LocaleContext';
@@ -42,6 +42,7 @@ export default function DepartmentAdminManagementScreen() {
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewingAdmin, setViewingAdmin] = useState<AdminUser | null>(null);
+  const [loading, setLoading] = useState(false);
   const EMPTY_FORM: AdminFormData = {
     name: '', email: '', password: '', phone: '',
     departmentId: '', status: 'active', role: t('مشرف قسم'),
@@ -114,14 +115,14 @@ export default function DepartmentAdminManagementScreen() {
     setViewModalVisible(true);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validate()) return;
     setSaving(true);
     try {
       if (editingId) {
         const existing = state.departmentAdmins.find((a) => a.id === editingId);
         if (!existing) return;
-        editDepartmentAdmin({
+        await editDepartmentAdmin({
           ...existing,
           name: form.name.trim(),
           email: form.email.trim(),
@@ -132,7 +133,7 @@ export default function DepartmentAdminManagementScreen() {
           avatar: form.avatar,
         });
       } else {
-        addDepartmentAdmin({
+        await addDepartmentAdmin({
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
@@ -156,7 +157,13 @@ export default function DepartmentAdminManagementScreen() {
   function handleDelete(admin: AdminUser) {
     Alert.alert(t('حذف مشرف'), `${t('سيتم حذف المشرف')} "${admin.name}"?`, [
       { text: t('إلغاء'), style: 'cancel' },
-      { text: t('حذف'), style: 'destructive', onPress: () => deleteDepartmentAdmin(admin.id) },
+      { text: t('حذف'), style: 'destructive', onPress: async () => {
+        try {
+          await deleteDepartmentAdmin(admin.id);
+        } catch {
+          // error handled by context
+        }
+      }},
     ]);
   }
 
@@ -182,6 +189,12 @@ export default function DepartmentAdminManagementScreen() {
         <Button label={t('إضافة')} onPress={openAdd} icon="add" iconPosition="right" />
       </View>
 
+      {loading ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+          <ActivityIndicator size="large" color={theme.colors.accent} />
+        </View>
+      ) : (
+        <>
       <View style={[styles.filterRow, isCompact && styles.filterRowCompact]}>
         <View style={styles.filterGroup}>
           <Ionicons name="funnel-outline" size={14} color={theme.colors.textMuted} />
@@ -272,6 +285,8 @@ export default function DepartmentAdminManagementScreen() {
             <Ionicons name="chevron-back" size={14} color={theme.colors.textPrimary} />
           </Pressable>
         </View>
+      )}
+        </>
       )}
 
       {/* Add / Edit Modal */}

@@ -14,7 +14,6 @@ interface CategoryFormState {
   image: string;
   sortOrder: string;
   isActive: boolean;
-  slug: string;
 }
 
 const EMPTY_FORM: CategoryFormState = {
@@ -23,7 +22,6 @@ const EMPTY_FORM: CategoryFormState = {
   image: '',
   sortOrder: '0',
   isActive: true,
-  slug: '',
 };
 
 interface ValidationErrors {
@@ -69,7 +67,6 @@ export default function CategoriesScreen() {
       image: cat.image || '',
       sortOrder: String(cat.sortOrder ?? 0),
       isActive: cat.isActive ?? true,
-      slug: cat.slug || '',
     });
     setErrors({});
     setModalVisible(true);
@@ -86,7 +83,6 @@ export default function CategoriesScreen() {
           image: form.image,
           sortOrder: Number(form.sortOrder) || 0,
           isActive: form.isActive,
-          slug: form.slug || form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
         });
       } else {
         await addCategory(form.name.trim(), 'Tag', form.image);
@@ -199,14 +195,6 @@ export default function CategoriesScreen() {
             placeholder={t('وصف الفئة (اختياري)')}
             multiline
             icon="document-text-outline"
-          />
-
-          <Input
-            label={t('الرابط المختصر (Slug)')}
-            value={form.slug}
-            onChangeText={(v) => setForm((f) => ({ ...f, slug: v }))}
-            placeholder={t('اختياري - سيتم توليده تلقائياً')}
-            icon="link-outline"
           />
 
           <Input

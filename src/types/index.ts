@@ -164,6 +164,7 @@ export interface Customer {
   lifetimeValue: number;
   city: string;
   memberSince: string;
+  password?: string;
   recentOrders?: {
     id: string;
     date: string;

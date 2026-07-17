@@ -23,6 +23,7 @@ import { userService, BackendUser } from '../services/userService';
 import { couponService, BackendCoupon } from '../services/couponService';
 import { settingService } from '../services/settingService';
 import { roleService } from '../services/roleService';
+import { departmentService, BackendDepartment } from '../services/departmentService';
 
 interface StoreContextValue {
   state: StoreState;
@@ -44,7 +45,7 @@ interface StoreContextValue {
   updateRolePermissions: (roleId: string, permissions: string[]) => Promise<void>;
   saveSettings: (settings: StoreSettings) => void;
   clearLogs: () => void;
-  addCustomer: (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'>) => Promise<void>;
+  addCustomer: (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'> & { password?: string }) => Promise<void>;
   editCustomer: (c: Customer) => Promise<void>;
   addCoupon: (c: Omit<Coupon, 'id'>) => Promise<void>;
   deleteCoupon: (id: string) => Promise<void>;
@@ -162,13 +163,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [categories, subCategories, products, orders, users, coupons] = await Promise.allSettled([
+      const [categories, subCategories, products, orders, users, coupons, departments] = await Promise.allSettled([
         categoryService.list(),
         subCategoryService.list(),
         productService.list(),
         orderService.list(),
         userService.list(),
         couponService.list(),
+        departmentService.list(),
       ]);
 
       const newState: Partial<StoreState> = {};
@@ -202,6 +204,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       if (coupons.status === 'fulfilled') {
         newState.coupons = coupons.value.map(mapBackendCoupon);
+      }
+      if (departments.status === 'fulfilled') {
+        newState.departments = departments.value.data.map((bd: BackendDepartment) => ({
+          id: bd.id,
+          name: bd.name,
+          nameAr: bd.nameAr,
+          description: bd.description || '',
+          adminIds: bd.adminIds || [],
+          productCount: bd.productCount || 0,
+          orderCount: bd.orderCount || 0,
+          revenue: bd.revenue || 0,
+          createdAt: bd.createdAt || '',
+        }));
       }
 
       try {
@@ -451,12 +466,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(tRef.current('تم تفريغ السجل بالكامل'), 'info');
   }, [showToast]);
 
-  const addCustomer = useCallback(async (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'>) => {
+  const addCustomer = useCallback(async (c: Omit<Customer, 'id' | 'recentOrders' | 'contactLog'> & { password?: string }) => {
     try {
       const backendUser = await userService.create({
         email: c.email,
         phone: c.phone,
         first_name: c.name,
+        password: c.password,
       } as any);
       const customer = mapBackendUser(backendUser);
       dispatch({ type: 'ADD_CUSTOMER', payload: customer });
@@ -540,34 +556,89 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(tRef.current('تم تسجيل الرد بنجاح'));
   }, [showToast]);
 
-  const addDepartment = useCallback((name: string, nameAr: string, description: string) => {
-    dispatch({ type: 'ADD_DEPARTMENT', payload: { name, nameAr, description } });
-    showToast(tRef.current('تم إنشاء القسم الجديد'));
+  const addDepartment = useCallback(async (name: string, nameAr: string, description: string) => {
+    try {
+      const backendDept = await departmentService.create({ name, nameAr, description });
+      const dept: Department = {
+        id: backendDept.id,
+        name: backendDept.name,
+        nameAr: backendDept.nameAr,
+        description: backendDept.description || '',
+        adminIds: backendDept.adminIds || [],
+        productCount: backendDept.productCount || 0,
+        orderCount: backendDept.orderCount || 0,
+        revenue: backendDept.revenue || 0,
+        createdAt: backendDept.createdAt || new Date().toISOString(),
+      };
+      dispatch({ type: 'ADD_DEPARTMENT', payload: dept });
+      showToast(tRef.current('تم إنشاء القسم الجديد'));
+    } catch {
+      showToast(tRef.current('فشل إنشاء القسم'), 'error');
+      throw new Error('Failed to add department');
+    }
   }, [showToast]);
 
-  const editDepartment = useCallback((d: Department) => {
-    dispatch({ type: 'EDIT_DEPARTMENT', payload: d });
-    showToast(tRef.current('تم تحديث القسم'));
+  const editDepartment = useCallback(async (d: Department) => {
+    try {
+      const backendDept = await departmentService.update(d.id, d);
+      const updatedDept: Department = {
+        id: backendDept.id,
+        name: backendDept.name,
+        nameAr: backendDept.nameAr,
+        description: backendDept.description || '',
+        adminIds: backendDept.adminIds || [],
+        productCount: backendDept.productCount || 0,
+        orderCount: backendDept.orderCount || 0,
+        revenue: backendDept.revenue || 0,
+        createdAt: backendDept.createdAt || d.createdAt,
+      };
+      dispatch({ type: 'EDIT_DEPARTMENT', payload: updatedDept });
+      showToast(tRef.current('تم تحديث القسم'));
+    } catch {
+      showToast(tRef.current('فشل تحديث القسم'), 'error');
+      throw new Error('Failed to update department');
+    }
   }, [showToast]);
 
-  const deleteDepartment = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_DEPARTMENT', payload: { id } });
-    showToast(tRef.current('تم حذف القسم'), 'error');
+  const deleteDepartment = useCallback(async (id: string) => {
+    try {
+      await departmentService.remove(id);
+      dispatch({ type: 'DELETE_DEPARTMENT', payload: { id } });
+      showToast(tRef.current('تم حذف القسم'), 'error');
+    } catch {
+      showToast(tRef.current('فشل حذف القسم'), 'error');
+      throw new Error('Failed to delete department');
+    }
   }, [showToast]);
 
-  const addDepartmentAdmin = useCallback((a: Omit<AdminUser, 'id'>) => {
-    dispatch({ type: 'ADD_DEPARTMENT_ADMIN', payload: a });
-    showToast(tRef.current('تم إضافة مشرف القسم الجديد'));
+  const addDepartmentAdmin = useCallback(async (a: Omit<AdminUser, 'id'>) => {
+    try {
+      dispatch({ type: 'ADD_DEPARTMENT_ADMIN', payload: a });
+      showToast(tRef.current('تم إضافة مشرف القسم الجديد'));
+    } catch {
+      showToast(tRef.current('فشل إضافة المشرف'), 'error');
+      throw new Error('Failed to add department admin');
+    }
   }, [showToast]);
 
-  const editDepartmentAdmin = useCallback((a: AdminUser) => {
-    dispatch({ type: 'EDIT_DEPARTMENT_ADMIN', payload: a });
-    showToast(tRef.current('تم تحديث بيانات المشرف'));
+  const editDepartmentAdmin = useCallback(async (a: AdminUser) => {
+    try {
+      dispatch({ type: 'EDIT_DEPARTMENT_ADMIN', payload: a });
+      showToast(tRef.current('تم تحديث بيانات المشرف'));
+    } catch {
+      showToast(tRef.current('فشل تحديث المشرف'), 'error');
+      throw new Error('Failed to update department admin');
+    }
   }, [showToast]);
 
-  const deleteDepartmentAdmin = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_DEPARTMENT_ADMIN', payload: { id } });
-    showToast(tRef.current('تم حذف المشرف'), 'error');
+  const deleteDepartmentAdmin = useCallback(async (id: string) => {
+    try {
+      dispatch({ type: 'DELETE_DEPARTMENT_ADMIN', payload: { id } });
+      showToast(tRef.current('تم حذف المشرف'), 'error');
+    } catch {
+      showToast(tRef.current('فشل حذف المشرف'), 'error');
+      throw new Error('Failed to delete department admin');
+    }
   }, [showToast]);
 
   const toggleDepartmentAdminStatus = useCallback((id: string) => {

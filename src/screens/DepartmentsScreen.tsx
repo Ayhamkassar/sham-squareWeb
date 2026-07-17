@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View, ScrollView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { useLocale } from '../i18n/LocaleContext';
@@ -31,6 +31,7 @@ export default function DepartmentsScreen() {
   const [form, setForm] = useState<DepartmentFormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   function validate(): boolean {
     const newErrors: ValidationErrors = {};
@@ -59,9 +60,9 @@ export default function DepartmentsScreen() {
     setSaving(true);
     try {
       if (editingDept) {
-        editDepartment({ ...editingDept, name: form.name.trim(), nameAr: form.nameAr.trim(), description: form.description.trim() });
+        await editDepartment({ ...editingDept, name: form.name.trim(), nameAr: form.nameAr.trim(), description: form.description.trim() });
       } else {
-        addDepartment(form.name.trim(), form.nameAr.trim(), form.description.trim());
+        await addDepartment(form.name.trim(), form.nameAr.trim(), form.description.trim());
       }
       setModalVisible(false);
       setEditingDept(null);
@@ -75,7 +76,13 @@ export default function DepartmentsScreen() {
   function handleDelete(id: string, deptName: string) {
     Alert.alert(t('حذف قسم'), `${t('هل أنت متأكد من حذف')} "${deptName}"?`, [
       { text: t('إلغاء'), style: 'cancel' },
-      { text: t('حذف'), style: 'destructive', onPress: () => deleteDepartment(id) },
+      { text: t('حذف'), style: 'destructive', onPress: async () => {
+        try {
+          await deleteDepartment(id);
+        } catch {
+          // error handled by context
+        }
+      }},
     ]);
   }
 
@@ -99,7 +106,11 @@ export default function DepartmentsScreen() {
         <Button label={t('إضافة قسم')} onPress={openAdd} icon="add" iconPosition="right" />
       </View>
 
-      {state.departments.length === 0 ? (
+      {loading ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+          <ActivityIndicator size="large" color={theme.colors.accent} />
+        </View>
+      ) : state.departments.length === 0 ? (
         <EmptyState icon="layers-outline" title={t('لا توجد أقسام')} subtitle={t('أضف قسماً جديداً للبدء')} />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} style={styles.list}>

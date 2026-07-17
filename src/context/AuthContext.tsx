@@ -175,9 +175,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     setAuthLoading(true);
-    await authService.logout();
-    await clearSession();
-    setAuthLoading(false);
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      await clearSession();
+      setAuthLoading(false);
+    }
   }, [clearSession]);
 
   const refreshSession = useCallback(async () => {
