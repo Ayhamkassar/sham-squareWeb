@@ -33,7 +33,7 @@ interface StoreContextValue {
   editProduct: (p: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   restockProduct: (id: string, amount: number) => void;
-  addCategory: (name: string, icon: string, image?: string) => Promise<void>;
+  addCategory: (name: string, icon: string, image?: string, slug?: string) => Promise<void>;
   editCategory: (id: string, data: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   addSubCategory: (data: Omit<SubCategory, 'id' | 'slug' | 'createdAt'>) => Promise<void>;

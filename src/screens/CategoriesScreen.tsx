@@ -98,7 +98,7 @@ export default function CategoriesScreen() {
           slug,
         });
       } else {
-        await addCategory(form.name.trim(), 'Tag', form.image, slug);
+        await addCategory(form.name.trim(), 'Tag', form.image, slug as string);
       }
       setModalVisible(false);
     } catch {
