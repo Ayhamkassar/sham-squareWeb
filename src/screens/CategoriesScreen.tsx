@@ -14,6 +14,7 @@ interface CategoryFormState {
   image: string;
   sortOrder: string;
   isActive: boolean;
+  slug: string;
 }
 
 const EMPTY_FORM: CategoryFormState = {
@@ -22,6 +23,7 @@ const EMPTY_FORM: CategoryFormState = {
   image: '',
   sortOrder: '0',
   isActive: true,
+  slug: '',
 };
 
 interface ValidationErrors {
@@ -67,15 +69,25 @@ export default function CategoriesScreen() {
       image: cat.image || '',
       sortOrder: String(cat.sortOrder ?? 0),
       isActive: cat.isActive ?? true,
+      slug: cat.slug || '',
     });
     setErrors({});
     setModalVisible(true);
+  }
+
+  function generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 
   async function handleSubmit() {
     if (!validate()) return;
     setSaving(true);
     try {
+      const slug = form.slug.trim() || generateSlug(form.name);
       if (editingId) {
         await editCategory(editingId, {
           name: form.name.trim(),
@@ -83,9 +95,10 @@ export default function CategoriesScreen() {
           image: form.image,
           sortOrder: Number(form.sortOrder) || 0,
           isActive: form.isActive,
+          slug,
         });
       } else {
-        await addCategory(form.name.trim(), 'Tag', form.image);
+        await addCategory(form.name.trim(), 'Tag', form.image, slug);
       }
       setModalVisible(false);
     } catch {
@@ -195,6 +208,14 @@ export default function CategoriesScreen() {
             placeholder={t('وصف الفئة (اختياري)')}
             multiline
             icon="document-text-outline"
+          />
+
+          <Input
+            label={t('الرابط المختصر (Slug)')}
+            value={form.slug}
+            onChangeText={(v) => setForm((f) => ({ ...f, slug: v }))}
+            placeholder={t('سيتم توليده تلقائياً من الاسم')}
+            icon="link-outline"
           />
 
           <Input

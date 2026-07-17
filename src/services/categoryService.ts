@@ -23,7 +23,7 @@ export const categoryService = {
     return payload?.data ?? null;
   },
 
-  async create(data: Partial<BackendCategory>): Promise<BackendCategory> {
+  async create(data: Partial<BackendCategory> & { slug?: string }): Promise<BackendCategory> {
     const payload = await postJson<{ success: boolean; data: BackendCategory }>('/categories', data);
     return payload.data;
   },

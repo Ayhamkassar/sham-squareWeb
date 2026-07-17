@@ -303,9 +303,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     showToast(`${tRef.current('تمت إضافة')} ${amount} ${tRef.current('قطعة')} ${tRef.current('للمخزون')}`);
   }, [showToast]);
 
-  const addCategory = useCallback(async (name: string, icon: string, image?: string) => {
+  const addCategory = useCallback(async (name: string, icon: string, image?: string, slug?: string) => {
     try {
-      const backendCategory = await categoryService.create({ name, image });
+      const backendCategory = await categoryService.create({ name, image, slug });
       const category = mapBackendCategory(backendCategory);
       dispatch({ type: 'ADD_CATEGORY', payload: category });
       showToast(tRef.current('تمت إضافة الفئة الجديدة'));
