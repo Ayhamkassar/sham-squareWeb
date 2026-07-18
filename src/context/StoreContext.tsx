@@ -501,9 +501,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addCoupon = useCallback(async (c: Omit<Coupon, 'id'>) => {
     try {
+      // Parse discount string to extract value and determine type
+      let value = 0;
+      let type = 'PERCENTAGE';
+      if (c.discount) {
+        const percentMatch = c.discount.match(/(\d+(?:\.\d+)?)\s*%/);
+        const fixedMatch = c.discount.match(/(\d+(?:\.\d+)?)/);
+        if (percentMatch) {
+          value = parseFloat(percentMatch[1]);
+          type = 'PERCENTAGE';
+        } else if (fixedMatch) {
+          value = parseFloat(fixedMatch[1]);
+          type = 'FIXED';
+        }
+      }
       const backendCoupon = await couponService.create({
+        name: c.code, // Use coupon code as the name since frontend doesn't have a separate name field
         code: c.code,
+        type,
+        value,
         description: c.description,
+        start_date: c.status === 'scheduled' ? new Date().toISOString() : undefined,
+        end_date: c.expiry && c.expiry !== 'بدون تاريخ انتهاء' ? new Date(c.expiry).toISOString() : undefined,
       });
       const coupon = mapBackendCoupon(backendCoupon);
       dispatch({ type: 'ADD_COUPON', payload: coupon });
